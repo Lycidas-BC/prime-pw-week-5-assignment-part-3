@@ -18,5 +18,7 @@ function addToCollection(title, artist, yearPublished){
   return record;
 } //end function addToCollection
 
+console.log("Initial collection", collection);
 //console.log(`addToCollection("The Beatles", "Abbey Road", 1969): ${addToCollection("The Beatles", "Abbey Road", 1969)}`);
-console.log("add to collection: The Beatles, Abbey Road, 1969", addToCollection("The Beatles","Abbey Road", 1969));
+console.log("Add to collection: The Beatles, Abbey Road, 1969", addToCollection("The Beatles","Abbey Road", 1969));
+console.log("Updated collection", collection);

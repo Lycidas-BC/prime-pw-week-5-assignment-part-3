@@ -108,3 +108,14 @@ showCollection(findByArtist("  hArRy nIlSSoN  ", collection));
 //search for Bob Dylan - four results
 console.log("Find albums by Bob Dylan (four):");
 showCollection(findByArtist("Bob Dylan", collection));
+
+//Stretch goal: create an extra flexible search function
+//allow multiple search criteria, including by date range, multiple years multiple artists at a time, and/or multiple albums
+//searchCriteria string format : artist: (artist1), (artist2) AND/OR year: year1-year2 (or year1, year2, year3) AND/OR album: album1, album2
+function search(searchCriteria, collection){
+  let artist = [];
+  let year = [];
+  let album = [];
+  //parse searchCriteria string -
+
+} //end function search

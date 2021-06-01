@@ -3,7 +3,7 @@ console.log('***** Music Collection *****')
 let collection = [];
 
 //function to add records into collection
-function addToCollection(title, artist, yearPublished){
+function addToCollection(artist, title, yearPublished){
   //create record object with input properties
   let record = {
     title: title,
@@ -57,3 +57,16 @@ console.log("Add to collection: Mitsuko Uchida, Mozart: Piano Sonatas, 2003", ad
 //console.log("Updated collection", collection);
 console.log("Add to collection: Blind Willie Johnson, The Complete Blind Willie Johnson, 2007", addToCollection("Blind Willie Johnson", "The Complete Blind Willie Johnson", 2007));
 console.log("Updated collection", collection);
+
+// print collection array
+function showCollection(collection){
+  //log array length
+  console.log(collection.length);
+
+  // loop over array elements, formatting and printing each object
+  for (let record of collection){
+    console.log(`${record.title} by ${record.artist}, published in ${record.yearPublished}`);
+  }
+} //end function showCollection
+
+showCollection(collection);

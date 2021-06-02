@@ -78,6 +78,11 @@ function showCollection(collection){
 //test showCollection
 showCollection(collection);
 
+//a function which compares input strings without regard for unnecessary whitespace or capitalization - handy for search functions
+function sanitizeAndCompare (string1, string2){
+  return string1.trim().toLowerCase() == string2.trim().toLowerCase();
+} //end sanitizeAndCompare
+
 //find all albums in a collection by a particular artist
 //(I know the instructions didn't tell us to take the collection as an input, but I figured this way we can use the same function to search someone else's collection too)
 function findByArtist(artist, collection){
@@ -85,7 +90,7 @@ function findByArtist(artist, collection){
   //go through record collection one at a time
   for(let record of collection){
     //compare input artist to artist of current record. trim string and convert to lower case so that whitespace and capitalization don't have to match
-    if( artist.trim().toLowerCase() == record.artist.trim().toLowerCase() ) {
+    if( sanitizeAndCompare(artist, record.artist) ) {
       albumsByArtist.push(record);
     }
   }
@@ -102,7 +107,7 @@ console.log("Find albums by GZA (one):");
 showCollection(findByArtist("GZA", collection));
 
 //search for Harry Nilsson - unsanitized input, one result
-console.log("Find albums by '  hArRy nIlSSoN  ' (with Spongebobbed capitalization and unnecessary whitespace - should find oneone):");
+console.log("Find albums by '  hArRy nIlSSoN  ' (with Spongebob capitalization and unnecessary whitespace - should find one):");
 showCollection(findByArtist("  hArRy nIlSSoN  ", collection));
 
 //search for Bob Dylan - four results
@@ -119,3 +124,5 @@ function search(searchCriteria, collection){
   //parse searchCriteria string -
 
 } //end function search
+
+//artist: "Bob Dylan", "GZA" AND year: 1960-1969, 1995

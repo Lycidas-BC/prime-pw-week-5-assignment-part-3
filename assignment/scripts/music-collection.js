@@ -117,12 +117,17 @@ showCollection(findByArtist("Bob Dylan", collection));
 //Stretch goal: create an extra flexible search function
 //allow multiple search criteria, including by date range, multiple years multiple artists at a time, and/or multiple albums
 //searchCriteria string format : artist: (artist1), (artist2) AND/OR year: year1-year2 (or year1, year2, year3) AND/OR album: album1, album2
+function parseSearchStringCategory (searchString) {
+  return searchString.trim().toLowerCase().split(/artist:|album:|year:/);
+} //end parseSearchStringCategory
+
 function search(searchCriteria, collection){
   let artist = [];
   let year = [];
   let album = [];
-  //parse searchCriteria string -
+  //parse searchCriteria string
 
 } //end function search
 
-//artist: "Bob Dylan", "GZA" AND year: 1960-1969, 1995
+let testString = parseSearchStringCategory('artist: "Bob Dylan", "GZA" AND year: 1960-1969, 1995 AND album: "Liquid Swords", "Highway 61 Revisited"');
+console.log(testString);

@@ -145,7 +145,6 @@ function parseSearchString (searchString) {
   //separate scenarios: all three search constraints exist, only two exist, only one exist
   if ( artistIndex >=0 && albumIndex >=0 && yearIndex >=0 ) {
     //all three exist; if an index is bigger than the others, it's in searchArray[2]; if smaller, it's in searchArray[0]; else it's in searchArray[1]
-    console.log(artistIndex, albumIndex, yearIndex, searchArray);
     artist = whichArrayElement(artistIndex, albumIndex, yearIndex, searchArray);
     album = whichArrayElement(albumIndex, yearIndex, artistIndex, searchArray);
     year = whichArrayElement(yearIndex, artistIndex, albumIndex, searchArray);
@@ -176,9 +175,18 @@ function parseSearchString (searchString) {
 } //end parseSearchString
 
 function search(searchCriteria, collection){
-  let artist = [];
-  let album = [];
-  let year = [];
+  //log out search criteria
+  console.log(`Search query: ${searchCriteria}`);
+
+  //if no search constraints, return entire collection
+  if (searchCriteria.trim() == "") {
+    return collection;
+  }
+
+  let searchResults = [];
+  let artists = [];
+  let albums = [];
+  let years = [];
   //parse searchCriteria string
   let searchArray = parseSearchString(searchCriteria);
 
@@ -186,40 +194,81 @@ function search(searchCriteria, collection){
   let counter = 0;
   for (let splitString of searchArray[0].split("\"")){
     if (counter%2 == 1) {
-      artist.push(splitString);
+      artists.push(splitString);
     }
     counter += 1;
   }
-  console.log(artist);
 
   // populate album array
   counter = 0;
   for (let splitString of searchArray[1].split("\"")){
     if (counter%2 == 1) {
-      album.push(splitString);
+      albums.push(splitString);
     }
     counter += 1;
   }
-  console.log(album);
 
   // populate year array
   counter = 0;
   for (let splitString of searchArray[2].replace("[","").replace("]","").split("\,")){
     if (splitString.indexOf("-") >= 0) {
-      console.log(splitString.slice(0,splitString.indexOf("-")).trim());
       for (let num = Number(splitString.slice(0,splitString.indexOf("-")).trim()); num <= Number(splitString.slice(splitString.indexOf("-")+1,splitString.length).trim()); num++) {
-        year.push(num);
-        console.log(num);
+        years.push(num);
       }
     } else {
-      year.push(Number(splitString.trim()));
+      years.push(Number(splitString.trim()));
     }
   }
-  console.log(year);
-
+  for (let record of collection) {
+    let addRecord = false;
+    for (let artistSearch of artists){
+      if (sanitizeAndCompare( artistSearch, record.artist ) ){
+        addRecord = true;
+      }
+    }
+    for (let albumSearch of albums){
+      if (sanitizeAndCompare( albumSearch, record.title )){
+        addRecord = true;
+      }
+    }
+    for (let yearSearch of years){
+      if (yearSearch == record.yearPublished){
+        addRecord = true;
+      }
+    }
+    if (addRecord) {
+      searchResults.push(record);
+    }
+  }
+  return searchResults;
 } //end function search
 
-let testString = 'artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\ Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
+// search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
+let testString = 'artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
 let parseString = parseSearchString(testString);
 console.log(testString, parseString);
-search(testString,collection);
+console.log(search(testString,collection));
+
+//make sure that no search criteria just returns the whole collection
+console.log(search('', collection));
+
+//make sure that not finding anything returns an empty array
+console.log(search('artist: ["notABand"]', collection));
+console.log(search('year: [1900]', collection) );
+console.log(search('album: ["worstAlbumEver"]', collection));
+console.log(search('asdf', collection));
+
+//make sure I can search only by artist, only by album, only by year
+console.log(search('artist: ["Bob Dylan"]', collection));
+console.log(search('artist: ["Arcade Fire", "Mitski"]', collection));
+console.log(search('year: [2000]', collection));
+console.log(search('year: [1960-1965, 1973, 2015-2020]', collection));
+console.log(search('album: ["The Freewheelin\' Bob Dylan"]', collection));
+console.log(search('album: ["Disney\'s Robin Hood Soundtrack", "Nighthawks at the Diner", "Horses"]', collection));
+
+//make sure I can search by two search criteria and make sure order doesn't matter
+console.log(search('artist: ["Arcade Fire", "Mitski"] year: [2000]', collection));
+console.log(search('year: [2000] artist: ["Arcade Fire", "Mitski"]', collection));
+console.log(search('album: ["Deltron 3030"] year: [2020]', collection));
+console.log(search('year: [2020] album: ["Deltron 3030"]', collection));
+console.log(search('artist: ["Arcade Fire", "Mitski"] album: ["Deltron 3030"]', collection));

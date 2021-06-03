@@ -183,10 +183,18 @@ function search(searchCriteria, collection){
     return collection;
   }
 
+  //initialize some variables
   let searchResults = [];
   let artists = [];
   let albums = [];
   let years = [];
+  let andConstraints = false;
+
+  //function search constraints will be OR by default; allow user to specify AND by beginning search with AND
+  if (searchCriteria.trim().slice(0,3) === "AND") {
+    andConstraints = true;
+  }
+
   //parse searchCriteria string
   let searchArray = parseSearchString(searchCriteria);
 
@@ -209,7 +217,6 @@ function search(searchCriteria, collection){
   }
 
   // populate year array
-  counter = 0;
   for (let splitString of searchArray[2].replace("[","").replace("]","").split("\,")){
     if (splitString.indexOf("-") >= 0) {
       for (let num = Number(splitString.slice(0,splitString.indexOf("-")).trim()); num <= Number(splitString.slice(splitString.indexOf("-")+1,splitString.length).trim()); num++) {
@@ -219,25 +226,58 @@ function search(searchCriteria, collection){
       years.push(Number(splitString.trim()));
     }
   }
-  for (let record of collection) {
-    let addRecord = false;
-    for (let artistSearch of artists){
-      if (sanitizeAndCompare( artistSearch, record.artist ) ){
-        addRecord = true;
+  // for some reason, years the above was resulting in an array of [0] if there was no year constraint; if this happens, get rid of 0
+  if (years[0] == 0){
+    years.shift();
+  }
+  if ( andConstraints ){
+    for (let record of collection) {
+      // if there's no constraint on a category, default to true so we allow anything true
+      // if there is some constraint, default to false
+      let artistMatch = artists.length == 0;
+      let albumMatch = albums.length == 0;
+      let yearMatch = years.length == 0;
+
+      for (let artistSearch of artists){
+        if (sanitizeAndCompare( artistSearch, record.artist ) ){
+          artistMatch = true;
+        }
+      }
+      for (let albumSearch of albums){
+        if (sanitizeAndCompare( albumSearch, record.title )){
+          albumMatch = true;
+        }
+      }
+      for (let yearSearch of years){
+        if (yearSearch == record.yearPublished){
+          yearMatch = true;
+        }
+      }
+      if (artistMatch && albumMatch && yearMatch) {
+        searchResults.push(record);
       }
     }
-    for (let albumSearch of albums){
-      if (sanitizeAndCompare( albumSearch, record.title )){
-        addRecord = true;
+  } else {
+    for (let record of collection) {
+      let addRecord = false;
+      for (let artistSearch of artists){
+        if (sanitizeAndCompare( artistSearch, record.artist ) ){
+          addRecord = true;
+        }
       }
-    }
-    for (let yearSearch of years){
-      if (yearSearch == record.yearPublished){
-        addRecord = true;
+      for (let albumSearch of albums){
+        if (sanitizeAndCompare( albumSearch, record.title )){
+          addRecord = true;
+        }
       }
-    }
-    if (addRecord) {
-      searchResults.push(record);
+      for (let yearSearch of years){
+        if (yearSearch == record.yearPublished){
+          addRecord = true;
+        }
+      }
+      if (addRecord) {
+        searchResults.push(record);
+      }
     }
   }
   return searchResults;
@@ -272,3 +312,30 @@ console.log(search('year: [2000] artist: ["Arcade Fire", "Mitski"]', collection)
 console.log(search('album: ["Deltron 3030"] year: [2020]', collection));
 console.log(search('year: [2020] album: ["Deltron 3030"]', collection));
 console.log(search('artist: ["Arcade Fire", "Mitski"] album: ["Deltron 3030"]', collection));
+
+// REPEAT ABOVE QUERIES WITH AND CONSTRAINT
+// search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
+testString = 'AND artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
+console.log(search(testString,collection));
+
+//make sure that not finding anything returns an empty array
+console.log(search('AND artist: ["notABand"]', collection));
+console.log(search('AND year: [1900]', collection) );
+console.log(search('AND album: ["worstAlbumEver"]', collection));
+
+//make sure I can search only by artist, only by album, only by year
+console.log(search('AND artist: ["Bob Dylan"]', collection));
+console.log(search('AND artist: ["Arcade Fire", "Mitski"]', collection));
+console.log(search('AND year: [2000]', collection));
+console.log(search('AND year: [1960-1965, 1973, 2015-2020]', collection));
+console.log(search('AND album: ["The Freewheelin\' Bob Dylan"]', collection));
+console.log(search('AND album: ["Disney\'s Robin Hood Soundtrack", "Nighthawks at the Diner", "Horses"]', collection));
+
+//make sure I can search by two search criteria and make sure order doesn't matter
+console.log(search('AND artist: ["Arcade Fire", "Mitski"] year: [2018]', collection));
+console.log(search('AND year: [2012] artist: ["Arcade Fire", "Mitski", "Swans"]', collection));
+console.log(search('AND album: ["Deltron 3030"] year: [2020]', collection));
+console.log(search('AND album: ["Deltron 3030"] year: [2000]', collection));
+console.log(search('AND artist: ["Arcade Fire", "Mitski"] album: ["Be The Cowboy"]', collection));
+
+console.log(search('AND artist: [" Bob DyLaN  "] year: [1960-1970]', collection));

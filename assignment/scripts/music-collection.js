@@ -158,7 +158,7 @@ function whichArrayElement (mainIndex, otherIndex1, otherIndex2, otherIndex3, ar
   mainIndex < otherIndex1 && mainIndex < otherIndex2 ? array[0] : array[1];
 } //end whichArrayElement
 
-//searchCriteria string format : artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
+//searchCriteria string format : (AND) artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
 function parseSearchString (searchString) {
   //separate search strings by category
   let searchArray = searchString.trim().toLowerCase().split(/artist:|album:|year:|track:/);
@@ -166,47 +166,26 @@ function parseSearchString (searchString) {
 
   //make sure search items are in the expected order
 
-  //grab indexes of artist for determining order in original string
-  let artistIndex = searchString.indexOf("artist:");
-  let albumIndex = searchString.indexOf("album:");
-  let yearIndex = searchString.indexOf("year:");
-  let trackIndex = searchString.indexOf("track:");
-
-  //initialize variables
-  let artist = "";
-  let album = "";
-  let year = "";
-  let track = "";
-
-  //separate scenarios: all three search constraints exist, only two exist, only one exist
-  if ( artistIndex >=0 && albumIndex >=0 && yearIndex >=0 ) {
-    //all three exist; if an index is bigger than the others, it's in searchArray[2]; if smaller, it's in searchArray[0]; else it's in searchArray[1]
-    artist = whichArrayElement(artistIndex, albumIndex, yearIndex, searchArray);
-    album = whichArrayElement(albumIndex, yearIndex, artistIndex, searchArray);
-    year = whichArrayElement(yearIndex, artistIndex, albumIndex, searchArray);
-  } else if (artistIndex >=0 && albumIndex >=0) {
-    //artist and album constraints exist
-    artist = artistIndex > albumIndex ? searchArray[1] : searchArray[0];
-    album = artistIndex > albumIndex ? searchArray[0] : searchArray[1];
-  } else if (albumIndex >=0 && yearIndex >=0) {
-    //album and year constraints exist
-    album = albumIndex > yearIndex ? searchArray[1] : searchArray[0];
-    year = albumIndex > yearIndex ? searchArray[0] : searchArray[1];
-  } else if (artistIndex >=0 && yearIndex >=0) {
-    //artist and year constraints exist
-    artist = artistIndex > yearIndex ? searchArray[1] : searchArray[0];
-    year = artistIndex > yearIndex ? searchArray[0] : searchArray[1];
-  } else if (artistIndex >=0) {
-    //only artist constraint exists
-    artist = searchArray[0];
-  } else if (albumIndex >=0) {
-    //only album constraint exists
-    album = searchArray[0];
-  } else if (yearIndex >=0) {
-    //only year constraint exists
-    year = searchArray[0];
+  //(Honestly, I'm pretty proud of this solution. You do not want to see how I was sorting this before - a real zoo of nested loops!)
+  let scrambleSearchArray = [
+    [searchString.indexOf("artist:"), 0],
+    [searchString.indexOf("album:"), 1],
+    [searchString.indexOf("year:"), 2],
+    [searchString.indexOf("track:"), 3]
+  ].sort(function(a,b) {
+    return a[0] - b[0]
+  });
+  let unscrambleSearchArray = [
+    [scrambleSearchArray[0][1], searchArray[0]],
+    [scrambleSearchArray[1][1], searchArray[1]],
+    [scrambleSearchArray[2][1], searchArray[2]],
+    [scrambleSearchArray[3][1], searchArray[3]]
+  ].sort(function(a,b) {
+    return a[0] - b[0]
+  });
+  for (let i = 0; i < unscrambleSearchArray.length; i++) {
+    searchArray[i] = undefined === unscrambleSearchArray[i][1] ? "" : unscrambleSearchArray[i][1];
   }
-  searchArray = [artist, album, year];
   return searchArray;
 } //end parseSearchString
 
@@ -263,10 +242,21 @@ function search(searchCriteria, collection){
       years.push(Number(splitString.trim()));
     }
   }
-  // for some reason, years the above was resulting in an array of [0] if there was no year constraint; if this happens, get rid of 0
+  // for some reason, the above was resulting in an array of [0] if there was no year constraint; if this happens, get rid of 0
   if (years[0] == 0){
     years.shift();
   }
+  //
+  counter = 0;
+
+  //populate tracks array
+  for (let splitString of searchArray[3].split("\"")){
+    if (counter%2 == 1) {
+      tracks.push(splitString);
+    }
+    counter += 1;
+  }
+
   if ( andConstraints ){
     for (let record of collection) {
       // if there's no constraint on a category, default to true so we allow anything true
@@ -274,6 +264,7 @@ function search(searchCriteria, collection){
       let artistMatch = artists.length == 0;
       let albumMatch = albums.length == 0;
       let yearMatch = years.length == 0;
+      let trackMatch = tracks.length == 0;
 
       for (let artistSearch of artists){
         if (sanitizeAndCompare( artistSearch, record.artist ) ){
@@ -290,7 +281,14 @@ function search(searchCriteria, collection){
           yearMatch = true;
         }
       }
-      if (artistMatch && albumMatch && yearMatch) {
+      for (let trackOnRecord of Object.values(record.tracks)){
+        for (let trackSearch of tracks) {
+          if (trackOnRecord.name == trackSearch) {
+            trackMatch = true;
+          }
+        }
+      }
+      if (artistMatch && albumMatch && yearMatch && trackMatch) {
         searchResults.push(record);
       }
     }
@@ -312,6 +310,13 @@ function search(searchCriteria, collection){
           addRecord = true;
         }
       }
+      for (let trackOnRecord of Object.values(record.tracks)){
+        for (let trackSearch of tracks) {
+          if (trackOnRecord.name == trackSearch) {
+            addRecord = true;
+          }
+        }
+      }
       if (addRecord) {
         searchResults.push(record);
       }
@@ -321,7 +326,7 @@ function search(searchCriteria, collection){
 } //end function search
 
 // search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
-let testString = 'artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"] track: ["Poppies"]';
+let testString = 'track: ["Poppies"] artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
 let parseString = parseSearchString(testString);
 console.log(testString, parseString);
 console.log(search(testString,collection));

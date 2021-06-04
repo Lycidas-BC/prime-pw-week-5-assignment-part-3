@@ -3,14 +3,21 @@ console.log('***** Music Collection *****')
 let collection = [];
 
 //function to add records into collection
-function addToCollection(artist, title, yearPublished){
+function addToCollection(artist, title, yearPublished, tracks){
   //create record object with input properties
   let record = {
     title: title,
     artist: artist,
-    yearPublished: yearPublished
+    yearPublished: yearPublished,
+    tracks: {}
   } //end object record
-
+  // populate tracks object
+  for (let track in tracks) {
+    record.tracks['track_'+track] = {
+      name: tracks[track][0],
+      duration: tracks[track][1]
+    }
+  }
   //push newly created record onto collection array
   collection.push(record);
 
@@ -20,47 +27,63 @@ function addToCollection(artist, title, yearPublished){
 
 //test function:
 console.log("Initial collection", collection);
-//console.log(`addToCollection("Roger Miller", "Disney's Robin Hood Soundtrack", 1973): ${addToCollection("Roger Miller", "Disney's Robin Hood Soundtrack", 1973)}`);
-console.log("Add to collection: Roger Miller, Disney's Robin Hood Soundtrack, 1973", addToCollection("Roger Miller", "Disney's Robin Hood Soundtrack", 1973));
-//console.log("Updated collection", collection);
+//console.log(`addToCollection(Tom Waits, Nighthawks at the Diner, 1975): ${addToCollection("Tom Waits", "Nighthawks at the Diner", 1975)}`);
 console.log("Add to collection: Tom Waits, Nighthawks at the Diner, 1975", addToCollection("Tom Waits", "Nighthawks at the Diner", 1975));
-//console.log("Updated collection", collection);
-console.log("Add to collection: Nina Simone, Emergency Ward, 1972", addToCollection("Nina Simone", "Emergency Ward", 1972));
-//console.log("Updated collection", collection);
+let tracks = [
+  ["My Sweet Lord / Today Is A Killer", "18:35"],
+  ["Poppies", "4:45"],
+  ["Isn't It A Pity", "11:11"]
+]
+console.log("Add to collection: Nina Simone, Emergency Ward, 1972", addToCollection("Nina Simone", "Emergency Ward", 1972,tracks));
+
 console.log("Add to collection: Nick Cave & the Bad Seeds, Skeleton Tree, 2016", addToCollection("Nick Cave & the Bad Seeds", "Skeleton Tree", 2016));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Robert Johnson, King of the Delta Blues Singers, 1961", addToCollection("Robert Johnson", "King of the Delta Blues Singers", 1961));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Swans, The Seer, 2012", addToCollection("Swans", "The Seer", 2012));
 console.log("Updated collection (6 records)", collection);
 console.log("Add to collection: Bob Dylan, The Freewheelin' Bob Dylan, 1963", addToCollection("Bob Dylan", "The Freewheelin' Bob Dylan", 1963));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Bob Dylan, Highway 61 Revisited, 1965", addToCollection("Bob Dylan", "Highway 61 Revisited", 1965));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Bob Dylan, Blood on the Tracks, 1975", addToCollection("Bob Dylan", "Blood on the Tracks", 1975));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Bob Dylan, Rough and Rowdy Ways, 2020", addToCollection("Bob Dylan", "Rough and Rowdy Ways", 2020));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Patti Smith, Horses, 1975", addToCollection("Patti Smith", "Horses", 1963));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Mitski, Be The Cowboy, 2018", addToCollection("Mitski", "Be The Cowboy", 2018));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Arcade Fire, The Suburbs, 2010", addToCollection("Arcade Fire", "The Suburbs", 2010));
-//console.log("Updated collection", collection);
-console.log("Add to collection: GZA, Liquid Swords, 1995", addToCollection("GZA", "Liquid Swords", 1995));
-//console.log("Updated collection", collection);
+tracks = [
+  ["Liquid Swords","4:31"],
+  ["Duel of the Iron Mic","4:06"],
+  ["Living in the World Today","4:23"],
+  ["Gold","3:57"],
+  ["Cold World","5:31"],
+  ["Labels","2:54"],
+  ["4th Chamber","4:37"],
+  ["Shadowboxin'","3:30"],
+  ["Hell's Wind Staff / Killah Hills 10304","5:09"],
+  ["Investigative Reports","3:50"],
+  ["Swordsman","3:21"],
+  ["I Gotcha Back","5:01"],
+  ["B.I.B.L.E.","4:33"]
+]
+console.log("Add to collection: GZA, Liquid Swords, 1995", addToCollection("GZA", "Liquid Swords", 1995,tracks));
+
 console.log("Add to collection: Deltron 3030, Deltron 3030, 2000", addToCollection("Deltron 3030", "Deltron 3030", 2000));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Harry Nilsson, Nilsson Schmilsson, 1971", addToCollection("Harry Nilsson", "Nilsson Schmilsson", 1971));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Daniel Johnston, Hi, How Are You?, 1983", addToCollection("Daniel Johnston", "Hi, How Are You?", 1983));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Allen Toussaint, The Bright Mississippi, 2009", addToCollection("Allen Toussaint", "The Bright Mississippi", 2009));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Mississippi John Hurt, Today!, 1966", addToCollection("Mississippi John Hurt", "Today!", 1966));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Mitsuko Uchida, Mozart: Piano Sonatas, 2003", addToCollection("Mitsuko Uchida", "Mozart: Piano Sonatas", 2003));
-//console.log("Updated collection", collection);
+
 console.log("Add to collection: Blind Willie Johnson, The Complete Blind Willie Johnson, 2007", addToCollection("Blind Willie Johnson", "The Complete Blind Willie Johnson", 2007));
 console.log("Updated collection", collection);
 
@@ -72,6 +95,11 @@ function showCollection(collection){
   //loop over array elements, formatting and printing each object
   for (let record of collection){
     console.log(`${record.title} by ${record.artist}, published in ${record.yearPublished}`);
+    let trackNum = 1;
+    for (let track of Object.values(record.tracks)){
+      console.log(`${trackNum}. ${track.name}: ${track.duration}`);
+      trackNum += 1;
+    }
   }
  } //end function showCollection
 
@@ -302,9 +330,9 @@ console.log(search('asdf', collection));
 console.log(search('artist: ["Bob Dylan"]', collection));
 console.log(search('artist: ["Arcade Fire", "Mitski"]', collection));
 console.log(search('year: [2000]', collection));
-console.log(search('year: [1960-1965, 1973, 2015-2020]', collection));
+console.log(search('year: [1960-1965, 1975, 2015-2020]', collection));
 console.log(search('album: ["The Freewheelin\' Bob Dylan"]', collection));
-console.log(search('album: ["Disney\'s Robin Hood Soundtrack", "Nighthawks at the Diner", "Horses"]', collection));
+console.log(search('album: ["Nighthawks at the Diner", "Horses"]', collection));
 
 //make sure I can search by two search criteria and make sure order doesn't matter
 console.log(search('artist: ["Arcade Fire", "Mitski"] year: [2000]', collection));
@@ -327,9 +355,9 @@ console.log(search('AND album: ["worstAlbumEver"]', collection));
 console.log(search('AND artist: ["Bob Dylan"]', collection));
 console.log(search('AND artist: ["Arcade Fire", "Mitski"]', collection));
 console.log(search('AND year: [2000]', collection));
-console.log(search('AND year: [1960-1965, 1973, 2015-2020]', collection));
+console.log(search('AND year: [1960-1965, 1975, 2015-2020]', collection));
 console.log(search('AND album: ["The Freewheelin\' Bob Dylan"]', collection));
-console.log(search('AND album: ["Disney\'s Robin Hood Soundtrack", "Nighthawks at the Diner", "Horses"]', collection));
+console.log(search('AND album: ["Nighthawks at the Diner", "Horses"]', collection));
 
 //make sure I can search by two search criteria and make sure order doesn't matter
 console.log(search('AND artist: ["Arcade Fire", "Mitski"] year: [2018]', collection));

@@ -222,7 +222,6 @@ function search(searchCriteria, collection){
 
   //parse searchCriteria string
   let searchArray = parseSearchString(searchCriteria);
-  console.log(searchArray);
 
   // populate artist array
   let counter = 0;
@@ -232,7 +231,6 @@ function search(searchCriteria, collection){
     }
     counter += 1;
   }
-  console.log(artists);
 
   // populate album array
   counter = 0;
@@ -242,7 +240,6 @@ function search(searchCriteria, collection){
     }
     counter += 1;
   }
-  console.log(albums);
 
   // populate year array
   for (let splitString of searchArray[2].split("\,")){
@@ -254,11 +251,10 @@ function search(searchCriteria, collection){
       years.push(Number(splitString.trim()));
     }
   }
-  // for some reason, the above was resulting in an array of [0] if there was no year constraint; if this happens, get rid of 0
+  // if there's no year constraint, the above results in [0]. I just want an empty array.
   if (years[0] == 0){
     years.shift();
   }
-  console.log(years);
 
   //populate tracks array
   counter = 0;
@@ -268,7 +264,6 @@ function search(searchCriteria, collection){
     }
     counter += 1;
   }
-  console.log(tracks);
 
   if ( andConstraints ){
     for (let record of collection) {
@@ -296,12 +291,11 @@ function search(searchCriteria, collection){
       }
       for (let trackOnRecord of Object.values(record.tracks)){
         for (let trackSearch of tracks) {
-          if (trackOnRecord.name == trackSearch) {
+          if (sanitizeAndCompare(trackOnRecord.name, trackSearch)) {
             trackMatch = true;
           }
         }
       }
-      console.log(artistMatch, albumMatch, yearMatch, trackMatch);
       if (artistMatch && albumMatch && yearMatch && trackMatch) {
         searchResults.push(record);
       }
@@ -326,7 +320,7 @@ function search(searchCriteria, collection){
       }
       for (let trackOnRecord of Object.values(record.tracks)){
         for (let trackSearch of tracks) {
-          if (trackOnRecord.name == trackSearch) {
+          if (sanitizeAndCompare(trackOnRecord.name, trackSearch)) {
             addRecord = true;
           }
         }

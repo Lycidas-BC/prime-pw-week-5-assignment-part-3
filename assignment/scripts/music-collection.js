@@ -161,31 +161,40 @@ function whichArrayElement (mainIndex, otherIndex1, otherIndex2, otherIndex3, ar
 //searchCriteria string format : (AND) artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
 function parseSearchString (searchString) {
   //separate search strings by category
-  let searchArray = searchString.trim().toLowerCase().split(/artist:|album:|year:|track:/);
-  searchArray.shift();
+  let searchArray = [];
+  let artistIndex = searchString.toLowerCase().indexOf("artist:");
+  let albumIndex = searchString.toLowerCase().indexOf("album:");
+  let yearIndex = searchString.toLowerCase().indexOf("year:");
+  let trackIndex = searchString.toLowerCase().indexOf("track:");
 
-  //make sure search items are in the expected order
-
-  //(Honestly, I'm pretty proud of this solution. You do not want to see how I was sorting this before - a real zoo of nested loops!)
-  let scrambleSearchArray = [
-    [searchString.indexOf("artist:"), 0],
-    [searchString.indexOf("album:"), 1],
-    [searchString.indexOf("year:"), 2],
-    [searchString.indexOf("track:"), 3]
-  ].sort(function(a,b) {
-    return a[0] - b[0]
-  });
-  let unscrambleSearchArray = [
-    [scrambleSearchArray[0][1], searchArray[0]],
-    [scrambleSearchArray[1][1], searchArray[1]],
-    [scrambleSearchArray[2][1], searchArray[2]],
-    [scrambleSearchArray[3][1], searchArray[3]]
-  ].sort(function(a,b) {
-    return a[0] - b[0]
-  });
-  for (let i = 0; i < unscrambleSearchArray.length; i++) {
-    searchArray[i] = undefined === unscrambleSearchArray[i][1] ? "" : unscrambleSearchArray[i][1];
+  //if there's an artist search constraint, push it into search array; else, push an empty string
+  if (artistIndex >= 0) {
+    searchArray.push(searchString.toLowerCase().substring(searchString.indexOf("[",artistIndex)+1,searchString.indexOf("]",artistIndex)));
+  } else {
+    searchArray.push("");
   }
+
+  //if there's an album search constraint, push it into search array; else, push an empty string
+  if (albumIndex >= 0) {
+    searchArray.push(searchString.toLowerCase().substring(searchString.indexOf("[",albumIndex)+1,searchString.indexOf("]",albumIndex)));
+  } else {
+    searchArray.push("");
+  }
+
+  //if there's a year search constraint, push it into search array; else, push an empty string
+  if (yearIndex >= 0) {
+    searchArray.push(searchString.toLowerCase().substring(searchString.indexOf("[",yearIndex)+1,searchString.indexOf("]",yearIndex)));
+  } else {
+    searchArray.push("");
+  }
+
+  //if there's an track search constraint, push it into search array; else, push an empty string
+  if (trackIndex >= 0) {
+    searchArray.push(searchString.toLowerCase().substring(searchString.indexOf("[",trackIndex)+1,searchString.indexOf("]",trackIndex)));
+  } else {
+    searchArray.push("");
+  }
+
   return searchArray;
 } //end parseSearchString
 
@@ -213,6 +222,7 @@ function search(searchCriteria, collection){
 
   //parse searchCriteria string
   let searchArray = parseSearchString(searchCriteria);
+  console.log(searchArray);
 
   // populate artist array
   let counter = 0;
@@ -222,6 +232,7 @@ function search(searchCriteria, collection){
     }
     counter += 1;
   }
+  console.log(artists);
 
   // populate album array
   counter = 0;
@@ -231,9 +242,10 @@ function search(searchCriteria, collection){
     }
     counter += 1;
   }
+  console.log(albums);
 
   // populate year array
-  for (let splitString of searchArray[2].replace("[","").replace("]","").split("\,")){
+  for (let splitString of searchArray[2].split("\,")){
     if (splitString.indexOf("-") >= 0) {
       for (let num = Number(splitString.slice(0,splitString.indexOf("-")).trim()); num <= Number(splitString.slice(splitString.indexOf("-")+1,splitString.length).trim()); num++) {
         years.push(num);
@@ -246,16 +258,17 @@ function search(searchCriteria, collection){
   if (years[0] == 0){
     years.shift();
   }
-  //
-  counter = 0;
+  console.log(years);
 
   //populate tracks array
+  counter = 0;
   for (let splitString of searchArray[3].split("\"")){
     if (counter%2 == 1) {
       tracks.push(splitString);
     }
     counter += 1;
   }
+  console.log(tracks);
 
   if ( andConstraints ){
     for (let record of collection) {
@@ -288,6 +301,7 @@ function search(searchCriteria, collection){
           }
         }
       }
+      console.log(artistMatch, albumMatch, yearMatch, trackMatch);
       if (artistMatch && albumMatch && yearMatch && trackMatch) {
         searchResults.push(record);
       }
@@ -326,7 +340,7 @@ function search(searchCriteria, collection){
 } //end function search
 
 // search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
-let testString = 'track: ["Poppies"] artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
+let testString = 'track: ["Poppies"] artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You?"]';
 let parseString = parseSearchString(testString);
 console.log(testString, parseString);
 console.log(search(testString,collection));
@@ -357,7 +371,7 @@ console.log(search('artist: ["Arcade Fire", "Mitski"] album: ["Deltron 3030"]', 
 
 // REPEAT ABOVE QUERIES WITH AND CONSTRAINT
 // search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
-testString = 'AND artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You"]';
+testString = 'AND artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You?"]';
 console.log(search(testString,collection));
 
 //make sure that not finding anything returns an empty array

@@ -31,6 +31,7 @@ console.log("Initial collection", collection);
 //console.log("Add to collection: Tom Waits, Nighthawks at the Diner, 1975", addToCollection("Tom Waits", "Nighthawks at the Diner", 1975));
 
 addToCollection("Tom Waits", "Nighthawks at the Diner", 1975);
+
 let tracks = [
   ["My Sweet Lord / Today Is A Killer", "18:35"],
   ["Poppies", "4:45"],
@@ -38,7 +39,17 @@ let tracks = [
 ]
 addToCollection("Nina Simone", "Emergency Ward", 1972,tracks);
 
-addToCollection("Nick Cave & the Bad Seeds", "Skeleton Tree", 2016);
+tracks = [
+  ["Jesus Alone", "5:52"],
+  ["Rings of Saturn", "3:28"],
+  ["Girl in Amber", "4:51"],
+  ["Magneto", "5:22"],
+  ["Anthrocene", "4:34"],
+  ["I Need You", "5:58"],
+  ["Distant Sky", "5:36"],
+  ["Skeleton Tree", "4:01"]
+]
+addToCollection("Nick Cave & the Bad Seeds", "Skeleton Tree", 2016, tracks);
 
 addToCollection("Robert Johnson", "King of the Delta Blues Singers", 1961);
 
@@ -46,7 +57,22 @@ addToCollection("Swans", "The Seer", 2012);
 
 console.log("Updated collection (6 records)", collection);
 
-addToCollection("Bob Dylan", "The Freewheelin' Bob Dylan", 1963);
+tracks = [
+  ["Blowin' in the Wind", "2:48"],
+  ["Girl from the North Country", "3:22"],
+  ["Masters of War", "4:34"],
+  ["Down the Highway", "3:27"],
+  ["Bob Dylan's Blues", "2:23"],
+  ["A Hard Rain's a-Gonna Fall", "6:55"],
+  ["Don't Think Twice, It's All Right", "3:40"],
+  ["Bob Dylan's Dream", "5:03"],
+  ["Oxford Town", "1:50"],
+  ["Talkin' World War III Blues", "6:28"],
+  ["Corrina, Corrina", "2:44"],
+  ["Honey, Just Allow Me One More Chance", "2:01"],
+  ["I Shall Be Free", "4:40"]
+]
+addToCollection("Bob Dylan", "The Freewheelin' Bob Dylan", 1963, tracks);
 
 addToCollection("Bob Dylan", "Highway 61 Revisited", 1965);
 
@@ -158,7 +184,7 @@ function whichArrayElement (mainIndex, otherIndex1, otherIndex2, otherIndex3, ar
   mainIndex < otherIndex1 && mainIndex < otherIndex2 ? array[0] : array[1];
 } //end whichArrayElement
 
-//searchCriteria string format : (AND) artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
+//searchCriteria string format : AND artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
 function parseSearchString (searchString) {
   //separate search strings by category
   let searchArray = [];
@@ -198,6 +224,10 @@ function parseSearchString (searchString) {
   return searchArray;
 } //end parseSearchString
 
+//search collection for all results that match searchCriteria
+//searchCriteria should have format: AND artist: ["artist1","artist2"] year: [year1-year2, year3] album: ["album1", "album2"] track: ["track1", "track2"]
+//default behavior is to OR between categories; if user specifies AND by putting it at beginning of string, categories will be ANDed.
+//formatting is strict: without [] around search lists and "" individual artists, albums, or tracks that search crterion will be ignored
 function search(searchCriteria, collection){
   //log out search criteria
   console.log(`Search query: ${searchCriteria}`);
@@ -265,6 +295,7 @@ function search(searchCriteria, collection){
     counter += 1;
   }
 
+//search through collection one record at a time, comparing it to artists, albums, years, and tracks in search criteria
   if ( andConstraints ){
     for (let record of collection) {
       // if there's no constraint on a category, default to true so we allow anything true
@@ -337,55 +368,57 @@ function search(searchCriteria, collection){
 let testString = 'track: ["Poppies"] artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You?"]';
 let parseString = parseSearchString(testString);
 console.log(testString, parseString);
-console.log(search(testString,collection));
+showCollection(search(testString, collection));
 
 //make sure that no search criteria just returns the whole collection
-console.log(search('', collection));
+showCollection(search('', collection));
 
 //make sure that not finding anything returns an empty array
-console.log(search('artist: ["notABand"]', collection));
-console.log(search('year: [1900]', collection) );
-console.log(search('album: ["worstAlbumEver"]', collection));
-console.log(search('asdf', collection));
+showCollection(search('artist: ["notABand"]', collection));
+showCollection(search('year: [1900]', collection) );
+showCollection(search('album: ["worstAlbumEver"]', collection));
+showCollection(search('track: ["nothingnothingnothing"]', collection));
+showCollection(search('asdf', collection));
 
 //make sure I can search only by artist, only by album, only by year
-console.log(search('artist: ["Bob Dylan"]', collection));
-console.log(search('artist: ["Arcade Fire", "Mitski"]', collection));
-console.log(search('year: [2000]', collection));
-console.log(search('year: [1960-1965, 1975, 2015-2020]', collection));
-console.log(search('album: ["The Freewheelin\' Bob Dylan"]', collection));
-console.log(search('album: ["Nighthawks at the Diner", "Horses"]', collection));
+showCollection(search('artist: ["Bob Dylan"]', collection));
+showCollection(search('artist: ["Arcade Fire", "Mitski"]', collection));
+showCollection(search('year: [2000]', collection));
+showCollection(search('year: [1960-1965, 1975, 2015-2020]', collection));
+showCollection(search('album: ["The Freewheelin\' Bob Dylan"]', collection));
+showCollection(search('album: ["Nighthawks at the Diner", "Horses"]', collection));
 
 //make sure I can search by two search criteria and make sure order doesn't matter
-console.log(search('artist: ["Arcade Fire", "Mitski"] year: [2000]', collection));
-console.log(search('year: [2000] artist: ["Arcade Fire", "Mitski"]', collection));
-console.log(search('album: ["Deltron 3030"] year: [2020]', collection));
-console.log(search('year: [2020] album: ["Deltron 3030"]', collection));
-console.log(search('artist: ["Arcade Fire", "Mitski"] album: ["Deltron 3030"]', collection));
+showCollection(search('artist: ["Arcade Fire", "Mitski"] year: [2000]', collection));
+showCollection(search('year: [2000] artist: ["Arcade Fire", "Mitski"]', collection));
+showCollection(search('album: ["Deltron 3030"] year: [2020]', collection));
+showCollection(search('year: [2020] album: ["Deltron 3030"]', collection));
+showCollection(search('artist: ["Arcade Fire", "Mitski"] album: ["Deltron 3030"]', collection));
+showCollection(search('AND artist: ["Bob Dylan", "GZA"] track: ["Duel of the Iron Mic", "I Shall Be Free"]', collection));
 
 // REPEAT ABOVE QUERIES WITH AND CONSTRAINT
 // search for multiple artists, albums, and years; try to include ones with weird characters like , and : and ' and &, just to make sure they don't break function
 testString = 'AND artist: ["Bob Dylan", "GZA", "Nick Cave & the Bad Seeds"] year: [1960-1969, 1995] album: ["Liquid Swords", "The Freewheelin\' Bob Dylan", "Mozart: Piano Sonatas", "Hi, How Are You?"]';
-console.log(search(testString,collection));
+showCollection(search(testString,collection));
 
 //make sure that not finding anything returns an empty array
-console.log(search('AND artist: ["notABand"]', collection));
-console.log(search('AND year: [1900]', collection) );
-console.log(search('AND album: ["worstAlbumEver"]', collection));
+showCollection(search('AND artist: ["notABand"]', collection));
+showCollection(search('AND year: [1900]', collection) );
+showCollection(search('AND album: ["worstAlbumEver"]', collection));
 
 //make sure I can search only by artist, only by album, only by year
-console.log(search('AND artist: ["Bob Dylan"]', collection));
-console.log(search('AND artist: ["Arcade Fire", "Mitski"]', collection));
-console.log(search('AND year: [2000]', collection));
-console.log(search('AND year: [1960-1965, 1975, 2015-2020]', collection));
-console.log(search('AND album: ["The Freewheelin\' Bob Dylan"]', collection));
-console.log(search('AND album: ["Nighthawks at the Diner", "Horses"]', collection));
+showCollection(search('AND artist: ["Bob Dylan"]', collection));
+showCollection(search('AND artist: ["Arcade Fire", "Mitski"]', collection));
+showCollection(search('AND year: [2000]', collection));
+showCollection(search('AND year: [1960-1965, 1975, 2015-2020]', collection));
+showCollection(search('AND album: ["The Freewheelin\' Bob Dylan"]', collection));
+showCollection(search('AND album: ["Nighthawks at the Diner", "Horses"]', collection));
 
 //make sure I can search by two search criteria and make sure order doesn't matter
-console.log(search('AND artist: ["Arcade Fire", "Mitski"] year: [2018]', collection));
-console.log(search('AND year: [2012] artist: ["Arcade Fire", "Mitski", "Swans"]', collection));
-console.log(search('AND album: ["Deltron 3030"] year: [2020]', collection));
-console.log(search('AND album: ["Deltron 3030"] year: [2000]', collection));
-console.log(search('AND artist: ["Arcade Fire", "Mitski"] album: ["Be The Cowboy"]', collection));
-
-console.log(search('AND artist: [" Bob DyLaN  "] year: [1960-1970]', collection));
+showCollection(search('AND artist: ["Arcade Fire", "Mitski"] year: [2018]', collection));
+showCollection(search('AND year: [2012] artist: ["Arcade Fire", "Mitski", "Swans"]', collection));
+showCollection(search('AND album: ["Deltron 3030"] year: [2020]', collection));
+showCollection(search('AND album: ["Deltron 3030"] year: [2000]', collection));
+showCollection(search('AND artist: ["Arcade Fire", "Mitski"] album: ["Be The Cowboy"]', collection));
+showCollection(search('AND artist: [" Bob DyLaN  "] year: [1960-1970]', collection));
+showCollection(search('AND track: ["Oxford Town"]', collection));
